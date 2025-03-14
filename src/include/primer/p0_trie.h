@@ -30,14 +30,14 @@ namespace bustub {
 class TrieNode {
  public:
   /**
-   * TODO(P0): Add implementation
+   * 
    *
    * @brief Construct a new Trie Node object with the given key char.
    * is_end_ flag should be initialized to false in this constructor.
    *
    * @param key_char Key character of this trie node
    */
-  explicit TrieNode(char key_char) {}
+  explicit TrieNode(char key_char) : key_char_(key_char),is_end_(false){}
 
   /**
    * TODO(P0): Add implementation
@@ -47,7 +47,10 @@ class TrieNode {
    *
    * @param other_trie_node Old trie node.
    */
-  TrieNode(TrieNode &&other_trie_node) noexcept {}
+  TrieNode(TrieNode &&other_trie_node) noexcept 
+    : key_char_(other_trie_node.key_char_),is_end_(other_trie_node.is_end_),
+      children_(std::move(other_trie_node.children_))
+  {}
 
   /**
    * @brief Destroy the TrieNode object.
@@ -62,7 +65,20 @@ class TrieNode {
    * @param key_char Key char of child node.
    * @return True if this trie node has a child with given key, false otherwise.
    */
-  bool HasChild(char key_char) const { return false; }
+  /**
+   * TODO(P0): 添加实现
+   *
+   * @brief 此 TrieNode 是否具有指定键字符的子节点。
+   *
+   * @param key_char 子节点的键字符。
+   * @return 如果此 TrieNode 具有给定键的子节点，则返回 true，否则返回 false。
+   */
+  bool HasChild(char key_char) const {
+    if(children_.find(key_char) != children_.end()){
+      return true;
+    }
+    return false;
+  }
 
   /**
    * TODO(P0): Add implementation
@@ -72,7 +88,19 @@ class TrieNode {
    *
    * @return True if this trie node has any child node, false if it has no child node.
    */
-  bool HasChildren() const { return false; }
+   /**
+   * TODO(P0): 添加实现
+   *
+   * @brief 此 TrieNode 是否有任何子节点。当实现 'Remove' 功能时，这很有用。
+   *
+   * @return 如果此 TrieNode 有任何子节点，则返回 true，如果没有子节点，则返回 false。
+   */
+  bool HasChildren() const { 
+    if(!children_.empty()){
+      return true;
+    }
+    return false;
+  }
 
   /**
    * TODO(P0): Add implementation
@@ -81,7 +109,7 @@ class TrieNode {
    *
    * @return True if is_end_ flag is true, false if is_end_ is false.
    */
-  bool IsEndNode() const { return false; }
+  bool IsEndNode() const { return is_end_; }
 
   /**
    * TODO(P0): Add implementation
@@ -90,7 +118,7 @@ class TrieNode {
    *
    * @return key_char_ of this trie node.
    */
-  char GetKeyChar() const { return 'a'; }
+  char GetKeyChar() const { return key_char_; }
 
   /**
    * TODO(P0): Add implementation
@@ -111,7 +139,30 @@ class TrieNode {
    * @param child Unique pointer created for the child node. This should be added to children_ map.
    * @return Pointer to unique_ptr of the inserted child node. If insertion fails, return nullptr.
    */
-  std::unique_ptr<TrieNode> *InsertChildNode(char key_char, std::unique_ptr<TrieNode> &&child) { return nullptr; }
+   /**
+   * TODO(P0): 添加实现
+   *
+   * @brief 为此 TrieNode 插入一个子节点到 children_ 映射中，给定键字符和子节点的唯一指针。
+   * 如果指定的 key_char 已存在于 children_ 中，则返回 nullptr。
+   * 如果参数 `child` 的键字符与参数 `key_char` 不同，则返回 nullptr。
+   *
+   * 注意，参数 `child` 是右值，应在插入到 children_map 时移动。
+   *
+   * 返回值是指向 unique_ptr 的指针，因为指向 unique_ptr 的指针可以在不获取 unique_ptr 所有权的情况下访问底层数据。
+   * 此外，当发生错误时，我们可以将返回值设置为 nullptr。
+   *
+   * @param key 子节点的键
+   * @param child 为子节点创建的唯一指针。应将其添加到 children_ 映射中。
+   * @return 插入的子节点的 unique_ptr 指针。如果插入失败，则返回 nullptr。
+   */
+  std::unique_ptr<TrieNode> *InsertChildNode(char key_char, std::unique_ptr<TrieNode> &&child) {
+    if(child == nullptr || child->GetKeyChar() != key_char || children_.find(key_char) != children_.end()){
+      return nullptr;
+    }
+    children_[key_char] = std::move(child);
+    
+    return &children_[key_char];
+  }
 
   /**
    * TODO(P0): Add implementation
@@ -123,7 +174,20 @@ class TrieNode {
    * @return Pointer to unique_ptr of the child node, nullptr if child
    *         node does not exist.
    */
-  std::unique_ptr<TrieNode> *GetChildNode(char key_char) { return nullptr; }
+  /**
+   * TODO(P0): 添加实现
+   *
+   * @brief 获取给定键字符的子节点。如果给定键字符的子节点不存在，则返回 nullptr。
+   *
+   * @param key 子节点的键
+   * @return 子节点的 unique_ptr 指针，如果子节点不存在，则返回 nullptr。
+   */
+  std::unique_ptr<TrieNode> *GetChildNode(char key_char) {
+    if(children_.find(key_char) == children_.end()){
+      return nullptr;
+    }
+    return &children_[key_char];
+  }
 
   /**
    * TODO(P0): Add implementation
@@ -133,7 +197,18 @@ class TrieNode {
    *
    * @param key_char Key char of child node to be removed
    */
-  void RemoveChildNode(char key_char) {}
+  /**
+   * TODO(P0): 添加实现
+   *
+   * @brief 从 children_ 映射中移除子节点。
+   * 如果 key_char 不存在于 children_ 中，则立即返回。
+   *
+   * @param key_char 要移除的子节点的键字符
+   */
+  void RemoveChildNode(char key_char) {
+    if(!HasChild(key_char)) return;
+    children_.erase(key_char);
+  }
 
   /**
    * TODO(P0): Add implementation
@@ -142,7 +217,16 @@ class TrieNode {
    *
    * @param is_end Whether this trie node is ending char of a key string
    */
-  void SetEndNode(bool is_end) {}
+  /**
+   * TODO(P0): 添加实现
+   *
+   * @brief 将 is_end_ 标志设置为 true 或 false。
+   *
+   * @param is_end 此 TrieNode 是否是键字符串的结束字符
+   */
+  void SetEndNode(bool is_end) {
+    is_end_ = is_end;
+  }
 
  protected:
   /** Key character of this trie node */
